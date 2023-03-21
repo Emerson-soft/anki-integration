@@ -1,4 +1,5 @@
 import { AnkiService } from './../../../src/Anki/service/AnkiService'
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { join } from 'node:path'
 import { TranslateService } from '../../../src/Translate/service/TranslateService'
@@ -17,18 +18,21 @@ export default class AnkisController {
     }
 
     const path = join(__dirname, `../../../tmp/uploads/${file?.fileName}`)
-    const { parse } = await this._readFileService.readFileCsv(path)
-    parse.on('data', async (row) => {
+    const files = await this._readFileService.readFileCsv(path)
+
+    for (const row of files) {
       const { responseData } = await this._translatedService.translated({
         from: 'en',
         to: 'pt-BR',
-        text: row[0],
+        text: row.front,
       })
 
       await this._ankiService.saveCard({
-        front: row[0],
+        front: row.front,
         back: responseData.translatedText,
       })
-    })
+    }
+
+    await this._readFileService.deleteFile(path)
   }
 }

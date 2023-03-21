@@ -1,15 +1,17 @@
 import Application from '@ioc:Adonis/Core/Application'
 import { MultipartFileContract } from '@ioc:Adonis/Core/BodyParser'
-import { parse, Parser } from 'csv-parse'
-import { createReadStream, unlink } from 'node:fs'
+import csvToJson from 'csvtojson'
+import { unlink } from 'node:fs'
 
 import { ReadFileContracts } from '../contracts/ReadFileContracts'
 
 export interface ReadFileResponse {
-  parse: Parser
+  front: string
 }
 
 export class ReadFileService implements ReadFileContracts {
+  private csv = csvToJson()
+
   public async deleteFile(path: string): Promise<void> {
     unlink(path, (err) => {
       if (err) {
@@ -22,10 +24,8 @@ export class ReadFileService implements ReadFileContracts {
   public async save(file: MultipartFileContract): Promise<void> {
     await file.move(Application.tmpPath('uploads'))
   }
-  public async readFileCsv(path: string): Promise<ReadFileResponse> {
-    const readFile = createReadStream(path).pipe(parse({ delimiter: ',', from_line: 2 }))
-    return {
-      parse: readFile,
-    }
+  public async readFileCsv(path: string): Promise<ReadFileResponse[]> {
+    const file: ReadFileResponse[] = await this.csv.fromFile(path)
+    return file
   }
 }
