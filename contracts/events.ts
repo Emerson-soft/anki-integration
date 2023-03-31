@@ -5,6 +5,8 @@
  * file.
  */
 
+import Card from 'App/Models/Card'
+
 declare module '@ioc:Adonis/Core/Event' {
   /*
   |--------------------------------------------------------------------------
@@ -26,6 +28,6 @@ declare module '@ioc:Adonis/Core/Event' {
   |
   */
   interface EventsList {
-    //
+    'anki:create': Card[]
   }
 }
